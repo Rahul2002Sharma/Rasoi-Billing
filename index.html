@@ -11,7 +11,7 @@ input,select{font:inherit;padding:10px;border:1px solid #bbb;border-radius:8px;w
 #cats{display:flex;gap:6px;overflow-x:auto;padding:8px}#cats button{white-space:nowrap}
 #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:0 8px}
 .tile{display:flex;flex-direction:column;justify-content:space-between;min-height:76px;text-align:left;background:#fff;border:1px solid #d8d8d2}
-.tile{position:relative}.tile b{padding-right:34px}.tile.in{border-color:#c8202a;background:#fdeced}.tile em{position:absolute;top:6px;right:6px;background:#c8202a;color:#fff;border-radius:12px;padding:0 8px;font-style:normal;font-weight:700}
+.tile{position:relative}.tile{padding:10px 12px;border-radius:8px;cursor:pointer}.st{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.st button{padding:8px 18px;font-size:20px;background:#c8202a;color:#fff}.st b{font-size:20px}.tile.in{border-color:#c8202a;background:#fdeced}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1d1d1d;color:#fff;padding:10px 16px;border-radius:20px;z-index:20;opacity:0;transition:opacity .15s;pointer-events:none;max-width:90%}#toast.s{opacity:1}
 .tile span{color:#c8202a;font-weight:700;margin-top:6px}
 #bar{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#1d1d1d;color:#fff;z-index:6}
@@ -62,11 +62,12 @@ function render(){
  cat=Math.min(cat,M.length-1);
  $('mode').innerHTML=['dine','take'].map(m=>`<button class="${S.mode==m?'on':''}" onclick="S.mode='${m}';render()">${m=='dine'?'Dine-in':'Takeaway'}</button>`).join('');
  $('cats').innerHTML=M.map((c,i)=>`<button class="${i==cat&&!q?'on':''}" onclick="cat=${i};q='';$('q').value='';render()">${e(c.c)}</button>`).join('');
- T=tiles();$('grid').innerHTML=T.map((x,i)=>{const k=S.ln.find(l=>l.n==x.n&&l.v==x.v);return `<button class="tile${k?' in':''}" onclick="add(${i})"><b>${e(x.n)}${x.v?' – '+e(x.v):''}</b><span>${rs(x.p)}</span>${k?`<em>×${k.q}</em>`:''}</button>`}).join('')||'<p>No dish found</p>';
+ T=tiles();$('grid').innerHTML=T.map((x,i)=>{const k=S.ln.find(l=>l.n==x.n&&l.v==x.v);return `<div class="tile${k?' in':''}" onclick="add(${i})"><b>${e(x.n)}${x.v?' – '+e(x.v):''}</b><span>${rs(x.p)}</span>${k?`<div class="st" onclick="event.stopPropagation()"><button onclick="dec(${i})">−</button><b>${k.q}</b><button onclick="add(${i})">+</button></div>`:''}</div>`}).join('')||'<p>No dish found</p>';
  const n=S.ln.reduce((a,l)=>a+l.q,0);
  $('bar').innerHTML=`<span>${n} item${n==1?'':'s'} · ${pre||''}-${String(cnt+1).padStart(4,'0')}</span><b>${rs(tot())}</b><button onclick="show('bill')">View bill</button>`;
  $('pl').textContent=pre||'';renderBill();W('order',S)}
 function add(i){const x=T[i],l=S.ln.find(l=>l.n==x.n&&l.v==x.v);const m=l||{n:x.n,v:x.v,q:0,pk:''};m.q++;if(!l)S.ln.push(m);render();toast('Added: '+x.n+(x.v?' ('+x.v+')':'')+' ×'+m.q);navigator.vibrate&&navigator.vibrate(30)}
+function dec(i){const x=T[i],j=S.ln.findIndex(l=>l.n==x.n&&l.v==x.v);if(j<0)return;const l=S.ln[j];l.q--;if(l.q<1)S.ln.splice(j,1);render();toast((l.q<1?'Removed: ':'Reduced: ')+x.n+(x.v?' ('+x.v+')':'')+(l.q<1?'':' ×'+l.q));navigator.vibrate&&navigator.vibrate(30)}
 function toast(t){const o=$('toast');o.textContent=t;o.classList.add('s');clearTimeout(window.tt);window.tt=setTimeout(()=>o.classList.remove('s'),1200)}
 function qty(i,d){S.ln[i].q=Math.max(1,S.ln[i].q+d);render()}
 function renderBill(){
